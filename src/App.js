@@ -3,6 +3,7 @@ import './index.css'
 import { useEffect, useState } from 'react';
 import RadarStation from './RadarStation';
 import StationGrid from './StationGrid';
+import Pagination from './Pagination';
 
 function App() {
 
@@ -42,6 +43,7 @@ const currentStations = stations.slice(indexOfFirstStation, indexOfLastStation);
       </div>
       <div className='basis-3/4'>
         <StationGrid stations={currentStations} loading={loading} />
+        <Pagination currentPage={currentPage} setCurrentPage={setCurrentPage} />
       </div>
     </div>
   );
