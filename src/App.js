@@ -20,12 +20,13 @@ const [searchTerm, setSearchTerm] = useState('');
 
 const inputRef = useRef(null);
 
-useEffect(() => {
-  const searchResults = stations.filter(station => {
-         return station.properties.name.toLowerCase().includes(searchTerm);
-       });
-  console.log(searchResults);
-}, [searchTerm])
+// useEffect(() => {
+//   const searchResults = stations.filter(station => {
+//          return station.properties.name.toLowerCase().includes(searchTerm);
+//        });
+//        console.log(searchTerm)
+//   console.log(searchResults);
+// }, [searchTerm])
 
 // const searchItems = (searchValue) => {
 //   setSearchTerm(searchValue);
@@ -130,7 +131,7 @@ const currentStations = stations.slice(indexOfFirstStation, indexOfLastStation);
       </div>
       <div className='basis-3/4 p-y-4'>
         <h1 className='text-2xl underline mb-4'>National Weather Service Active Stations</h1>
-        <StationGrid stations={currentStations} loading={loading} />
+        <StationGrid stations={currentStations} loading={loading} searchTerm={searchTerm} />
         <Pagination currentPage={currentPage} setCurrentPage={setCurrentPage} />
       </div>
     </div>
