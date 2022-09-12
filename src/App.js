@@ -1,6 +1,6 @@
 import './App.css';
 import './index.css'
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import RadarStation from './RadarStation';
 import StationGrid from './StationGrid';
 import Pagination from './Pagination';
@@ -9,17 +9,41 @@ import TimezoneInput from './TimezoneInput';
 function App() {
 
 const [stations, setStations] = useState([]);
+const [stationsToRender, setStationsToRender] = useState([]);
 const [loading, setLoading] = useState(false);
 const [currentPage, setCurrentPage] = useState(1);
 const [postsPerPage, setPostsPerPage] = useState(9);
 const [userLatitude, setUserLatitude] = useState(null);
 const [userLongitude, setUserLongitude] = useState(null);
 const [timezone, setTimezone] = useState('');
+const [searchTerm, setSearchTerm] = useState('');
+
+const inputRef = useRef(null);
+
+useEffect(() => {
+  const searchResults = stations.filter(station => {
+         return station.properties.name.toLowerCase().includes(searchTerm);
+       });
+  console.log(searchResults);
+}, [searchTerm])
+
+// const searchItems = (searchValue) => {
+//   setSearchTerm(searchValue);
+//   console.log(searchTerm)
+// }
+// function handleSearch (e) {
+//   const value = inputRef.current.value;
+//   console.log(value);
+//   const searchResults = stations.filter(station => {
+//     return station.properties.name.toLowerCase().includes(value);
+//   });
+//   setStations(searchResults)
+// }
 
 //Get current station segment
 const indexOfLastStation = currentPage * postsPerPage;
 const indexOfFirstStation = indexOfLastStation - postsPerPage;
-const currentStations = stations.slice(indexOfFirstStation, indexOfLastStation);
+
 
 //Get user location
 const successCallback = (position) => {
@@ -63,7 +87,7 @@ const sortArrayByDistance = function(arr) {
 }
 
 useEffect(() => {
-  const fetchWeatherData = async () => {
+  const fetchApiData = async () => {
       const url = 'https://api.weather.gov/radar/stations';
       
       try {
@@ -71,7 +95,6 @@ useEffect(() => {
         const res = await fetch(url);
         const data = await res.json();
         let apiData = data.features;
-        console.log(apiData)
         setStations(apiData);
         let finalArray = sortArrayByDistance(apiData);
         setStations(finalArray);
@@ -80,11 +103,12 @@ useEffect(() => {
         console.log(error);
       }
     }
-    fetchWeatherData();
-}, [])
+  fetchApiData();
+}, []);
 
+const currentStations = stations.slice(indexOfFirstStation, indexOfLastStation);
 
-console.log(stations);
+// console.log(stations);
 
 
 // let x = sortArrayByDistance(stations);
@@ -100,11 +124,12 @@ console.log(stations);
 ///////////////////////////////////////////////////////////////////////
   return (
     <div className="App flex w-full h-full">
-      <div className='bg-red-600 basis-1/4 h-screen'>
+      <div className='basis-1/4 h-screen border-r-black border-r-2'>
           <TimezoneInput />
-          <button className='h-8 fixed top-10'>test userlocation</button>
+          <input type="text" ref={inputRef} onChange={(e) => setSearchTerm(e.target.value)} className='border-2' placeholder='Search for a city...'></input>
       </div>
-      <div className='basis-3/4'>
+      <div className='basis-3/4 p-y-4'>
+        <h1 className='text-2xl underline mb-4'>National Weather Service Active Stations</h1>
         <StationGrid stations={currentStations} loading={loading} />
         <Pagination currentPage={currentPage} setCurrentPage={setCurrentPage} />
       </div>

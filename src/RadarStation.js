@@ -10,11 +10,11 @@ function RadarStation({station}) {
       };
 
   return (
-    <div>
-        <p>{station.properties.name}</p>
-        <p>{station.properties.id}</p>
-        <p>{station.properties.elevation.value}</p>
-        <p>{station.properties.timeZone}</p>
+    <div className='border-2 flex flex-col justify-around p-2'>
+        <h2 className='text-lg'>{station.properties.name} ({station.properties.id}) </h2>
+
+        <p>Elevation: {Math.round(station.properties.elevation.value)} ft.</p>
+        <p>Timezone: {station.properties.timeZone}</p>
         <p onClick={showMapClick} className='cursor-pointer hover:underline'>{latitude}{'\u00b0'} N , {longitude * -1}{'\u00b0'} W</p>
     </div>
   )
