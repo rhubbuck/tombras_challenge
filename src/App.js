@@ -17,6 +17,9 @@ const [userLatitude, setUserLatitude] = useState(null);
 const [userLongitude, setUserLongitude] = useState(null);
 const [timezone, setTimezone] = useState('');
 const [searchTerm, setSearchTerm] = useState('');
+const [filteredArr, setFilteredArr] = useState([]);
+
+let hasSearch = false;
 
 const inputRef = useRef(null);
 
@@ -109,6 +112,20 @@ useEffect(() => {
 
 const currentStations = stations.slice(indexOfFirstStation, indexOfLastStation);
 
+const onChangeFunction = (e) => {
+
+  setSearchTerm(e.target.value);
+  console.log(searchTerm);
+  console.log(inputRef.current.value)
+  let term = inputRef.current.value;
+
+
+  let filtered = stations.filter(station => station.properties.name.toLowerCase().includes(term));
+  console.log(filtered)
+  setFilteredArr(filtered);
+}
+
+
 // console.log(stations);
 
 
@@ -127,12 +144,15 @@ const currentStations = stations.slice(indexOfFirstStation, indexOfLastStation);
     <div className="App flex w-full h-full">
       <div className='basis-1/4 h-screen border-r-black border-r-2'>
           <TimezoneInput />
-          <input type="text" ref={inputRef} onChange={(e) => setSearchTerm(e.target.value)} className='border-2' placeholder='Search for a city...'></input>
+          <input type="text" ref={inputRef} onChange={onChangeFunction} className='border-2' placeholder='Search for a city...'></input>
       </div>
       <div className='basis-3/4 p-y-4'>
         <h1 className='text-2xl underline mb-4'>National Weather Service Active Stations</h1>
-        <StationGrid stations={currentStations} loading={loading} searchTerm={searchTerm} />
-        <Pagination currentPage={currentPage} setCurrentPage={setCurrentPage} />
+        { filteredArr === undefined || filteredArr.length == 0 ? 
+        <StationGrid stations={stations} loading={loading} searchTerm={searchTerm} /> : 
+        <StationGrid stations={filteredArr} loading={loading} searchTerm={searchTerm} />}
+        {/* <StationGrid stations={filteredArr} loading={loading} searchTerm={searchTerm} /> */}
+        {/* <Pagination currentPage={currentPage} setCurrentPage={setCurrentPage} /> */}
       </div>
     </div>
   );
