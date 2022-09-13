@@ -16,9 +16,8 @@ const [userLongitude, setUserLongitude] = useState(null);
 const [timezone, setTimezone] = useState('');
 const [searchTerm, setSearchTerm] = useState('');
 const [filteredArr, setFilteredArr] = useState([]);
-
 const inputRef = useRef(null);
-
+// Timezone Lookup Library
 var tzlookup = require("tz-lookup");
 
 //Get user location
@@ -37,8 +36,8 @@ useEffect(() => {
 }, [])
 
 
-
-function getDistanceFromLatLonInKm(lat1, lon1, lat2, lon2) {
+//Get distance from user to other stations
+const getDistanceFromLatLonInKm = (lat1, lon1, lat2, lon2) => {
   var R = 6371; // Radius of the earth in km
   var dLat = deg2rad(lat2-lat1);  // deg2rad below
   var dLon = deg2rad(lon2-lon1); 
@@ -52,40 +51,81 @@ function getDistanceFromLatLonInKm(lat1, lon1, lat2, lon2) {
   return d;
 }
 
-function deg2rad(deg) {
+const deg2rad = (deg) => {
   return deg * (Math.PI/180)
 }
 
-const sortArrayByDistance = function(arr) {
+//Sort array of stations by distance from user
+const sortArrayByDistance = (arr) => {
   let arrayWithDistance = arr.map(station => {
     let distance =  getDistanceFromLatLonInKm(userLatitude, userLongitude, station.geometry.coordinates[1], station.geometry.coordinates[0]);
     return {...station, distance: distance};
   });
   let sorted = arrayWithDistance.sort((a, b) => parseFloat(a.distance) - parseFloat(b.distance));
+  localStorage.setItem('sortedArray', JSON.stringify(sorted));
   return sorted;
 }
 
+//Get input and search through array using fuse
+const onChangeFunction = (e) => {
+  setSearchTerm(e.target.value);
+  let term = inputRef.current.value;
+  const options = {
+    includeScore: true,
+    keys: ['properties.name']
+  }
+  const fuse = new Fuse(stations, options)
+  const result = fuse.search(term)
+  const resultTwo = result.map(item => {
+    return item.item
+  })
+  setFilteredArr(resultTwo);
+}
+
+//Get data from timezone select input
+const getTimezoneSelection = (str) => {
+  setStations(apiStations)
+    setTimezone(str)
+}
+
+// Use timezone input data to filter through arrays
+useEffect ( () => {
+  let timezoneStations = stations.filter( item => {
+    return item.timezone === timezone
+  })
+  setStations(timezoneStations)
+  setFilteredArr(timezoneStations)
+  setCurrentPage(1)
+}, [timezone])
+
+//Reset to default when selecting all timezones
+const resetTimezones = () => {
+  setStations(apiStations)
+  setFilteredArr(apiStations)
+  setCurrentPage(1)
+}
+
+//Fetch data, add distance, add timezone, and sort
 useEffect(() => {
   const fetchApiData = async () => {
       const url = 'https://api.weather.gov/radar/stations';
       
       try {
         setLoading(true);
-        navigator.geolocation.getCurrentPosition(successCallback, errorCallback);
         const res = await fetch(url);
         const data = await res.json();
         let apiData = data.features;
-        setStations(apiData);
-        let finalArray = sortArrayByDistance(apiData);
-        setStations(finalArray);
-        let xArray = finalArray.map(item => {
+        //sort by distance away
+        let distanceArray = sortArrayByDistance(apiData);
+        //add timezone to objects
+        let timezoneArray = distanceArray.map(item => {
           let lat = item.geometry.coordinates[1];
           let long = item.geometry.coordinates[0];
           let timezone = tzlookup(lat, long)
           return {...item, timezone: timezone}
         })
-        setStations(sortArrayByDistance(xArray))
-        setApiStations(sortArrayByDistance(xArray))
+        setStations(sortArrayByDistance(timezoneArray))
+        setApiStations(sortArrayByDistance(timezoneArray))
         setLoading(false);
       } catch (error) {
         console.log(error);
@@ -94,68 +134,35 @@ useEffect(() => {
   fetchApiData();
 }, []);
 
-const onChangeFunction = (e) => {
-
-  setSearchTerm(e.target.value);
-  // console.log(searchTerm);
-  // console.log(inputRef.current.value)
-  let term = inputRef.current.value;
-
-  const options = {
-    includeScore: true,
-    keys: ['properties.name']
-  }
-  
-  const fuse = new Fuse(stations, options)
-  
-  const result = fuse.search(term)
-  const resultTwo = result.map(item => {
-    return item.item
-  })
-  console.log(stations.map(item => {
-    return item.timezone
-  }))
-
-  setFilteredArr(resultTwo);
-}
-
-const getTimezoneSelection = (str) => {
-  setStations(apiStations)
-    setTimezone(str)
-}
-
-useEffect ( () => {
-  // console.log(timezone);
-  let timezoneStations = stations.filter( item => {
-    return item.timezone === timezone
-  })
-  // console.log(timezoneStations)
-  setStations(timezoneStations)
-  setFilteredArr(timezoneStations)
-  setCurrentPage(1)
-}, [timezone])
-
-const resetTimezones = () => {
-  setStations(apiStations)
-  setFilteredArr(apiStations)
-  setCurrentPage(1)
-}
-
-const toFirstPage = () => {
-
-}
 
   return (
     <div className="App flex w-full h-full">
       <div className='basis-1/4 h-screen border-r-black border-r-2'>
+        <h2 className='mt-12 mb-2'>Filter results by city or timezone</h2>
+          <input type="text" ref={inputRef} onChange={onChangeFunction} className=' 
+          mt-2
+          px-3
+          py-1.5 w-60 text-base
+          font-normal
+          text-gray-700
+          bg-white bg-clip-padding
+          border border-solid border-gray-300
+          rounded
+          transition
+          ease-in-out
+          m-0
+          focus:text-gray-700 
+          focus:bg-white 
+          focus:border-blue-600 
+          focus:outline-none' 
+          placeholder='Search for a city...'></input>
           <TimezoneInput getTimezoneSelection={getTimezoneSelection} resetTimezones={resetTimezones} />
-          <input type="text" ref={inputRef} onChange={onChangeFunction} className='border-2' placeholder='Search for a city...'></input>
       </div>
       <div className='basis-3/4 p-y-4'>
-        <h1 className='text-2xl underline mb-4'>National Weather Service Active Stations</h1>
+        <h1 className='underline mt-4 mb-6 font-light leading-tight text-5xl text-blue-700'>National Weather Service Active Stations</h1>
         { filteredArr === undefined || filteredArr.length === 0 ? 
-        <StationGrid stations={stations} loading={loading} searchTerm={searchTerm} toFirstPage={toFirstPage} currentPage={currentPage} setCurrentPage={setCurrentPage} /> : 
-        <StationGrid stations={filteredArr} loading={loading} searchTerm={searchTerm} toFirstPage={toFirstPage} currentPage={currentPage}  setCurrentPage={setCurrentPage} />}
+        <StationGrid stations={stations} loading={loading} searchTerm={searchTerm} currentPage={currentPage} setCurrentPage={setCurrentPage} /> : 
+        <StationGrid stations={filteredArr} loading={loading} searchTerm={searchTerm} currentPage={currentPage}  setCurrentPage={setCurrentPage} />}
       </div>
     </div>
   );

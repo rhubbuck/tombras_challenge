@@ -3,14 +3,13 @@ import RadarStation from './RadarStation';
 import Pagination from './Pagination';
 
 function StationGrid({stations, loading, currentPage,  setCurrentPage }) {
-    // const [currentPage, setCurrentPage] = useState(1);
     const [postsPerPage, setPostsPerPage] = useState(9);
 
     if (loading) {
         return <h3 className='text-xl'>Loading...</h3>
     }
     
-    //Get current station segment
+    //Get current station segment to display in pagination
     const indexOfLastStation = currentPage * postsPerPage;
     const indexOfFirstStation = indexOfLastStation - postsPerPage;
     const currentStations = stations.slice(indexOfFirstStation, indexOfLastStation);

@@ -11,7 +11,21 @@ function TimezoneInput( { getTimezoneSelection, resetTimezones }) {
 
   return (
     <div className='mt-6'>
-        <select onChange={handleGetTimezone} className='cursor-pointer border-2'>
+        <select onChange={handleGetTimezone} className='
+        cursor-pointer px-3
+        py-1.5 w-60 text-base
+        font-normal
+        text-gray-700
+        bg-white bg-clip-padding
+        border border-solid border-gray-300
+        rounded
+        transition
+        ease-in-out
+        m-0
+        focus:text-gray-700 
+        focus:bg-white 
+        focus:border-blue-600 
+        focus:outline-none'>
             <option value="All" className='cursor-pointer'>All timezones</option>
             <option value="America/Anchorage" className='cursor-pointer'>Alaska Standard Time</option>
             <option value="America/Puerto_Rico" className='cursor-pointer'>Atlantic Standard Time</option>
