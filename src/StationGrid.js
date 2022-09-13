@@ -2,8 +2,8 @@ import React, { useState } from 'react';
 import RadarStation from './RadarStation';
 import Pagination from './Pagination';
 
-function StationGrid({stations, loading, searchTerm}) {
-    const [currentPage, setCurrentPage] = useState(1);
+function StationGrid({stations, loading, currentPage,  setCurrentPage }) {
+    // const [currentPage, setCurrentPage] = useState(1);
     const [postsPerPage, setPostsPerPage] = useState(9);
 
     if (loading) {

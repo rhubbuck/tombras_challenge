@@ -11,7 +11,6 @@ const [stations, setStations] = useState([]);
 const [apiStations, setApiStations] = useState([]);
 const [loading, setLoading] = useState(false);
 const [currentPage, setCurrentPage] = useState(1);
-const [postsPerPage, setPostsPerPage] = useState(9);
 const [userLatitude, setUserLatitude] = useState(null);
 const [userLongitude, setUserLongitude] = useState(null);
 const [timezone, setTimezone] = useState('');
@@ -22,24 +21,22 @@ const inputRef = useRef(null);
 
 var tzlookup = require("tz-lookup");
 
-//Get current station segment
-const indexOfLastStation = currentPage * postsPerPage;
-const indexOfFirstStation = indexOfLastStation - postsPerPage;
-
-
 //Get user location
 const successCallback = (position) => {
   let userPosition = position;
   setUserLatitude(userPosition.coords.latitude);
   setUserLongitude(userPosition.coords.longitude);
- 
 };
 
 const errorCallback = (error) => {
   console.log(error);
 };
 
-navigator.geolocation.getCurrentPosition(successCallback, errorCallback);
+useEffect(() => {
+  navigator.geolocation.getCurrentPosition(successCallback, errorCallback);
+}, [])
+
+
 
 function getDistanceFromLatLonInKm(lat1, lon1, lat2, lon2) {
   var R = 6371; // Radius of the earth in km
@@ -74,6 +71,7 @@ useEffect(() => {
       
       try {
         setLoading(true);
+        navigator.geolocation.getCurrentPosition(successCallback, errorCallback);
         const res = await fetch(url);
         const data = await res.json();
         let apiData = data.features;
@@ -86,8 +84,8 @@ useEffect(() => {
           let timezone = tzlookup(lat, long)
           return {...item, timezone: timezone}
         })
-        setStations(xArray)
-        setApiStations(xArray)
+        setStations(sortArrayByDistance(xArray))
+        setApiStations(sortArrayByDistance(xArray))
         setLoading(false);
       } catch (error) {
         console.log(error);
@@ -99,8 +97,8 @@ useEffect(() => {
 const onChangeFunction = (e) => {
 
   setSearchTerm(e.target.value);
-  console.log(searchTerm);
-  console.log(inputRef.current.value)
+  // console.log(searchTerm);
+  // console.log(inputRef.current.value)
   let term = inputRef.current.value;
 
   const options = {
@@ -127,17 +125,24 @@ const getTimezoneSelection = (str) => {
 }
 
 useEffect ( () => {
-  console.log(timezone);
+  // console.log(timezone);
   let timezoneStations = stations.filter( item => {
     return item.timezone === timezone
   })
-  console.log(timezoneStations)
+  // console.log(timezoneStations)
   setStations(timezoneStations)
   setFilteredArr(timezoneStations)
+  setCurrentPage(1)
 }, [timezone])
 
 const resetTimezones = () => {
   setStations(apiStations)
+  setFilteredArr(apiStations)
+  setCurrentPage(1)
+}
+
+const toFirstPage = () => {
+
 }
 
   return (
@@ -149,8 +154,8 @@ const resetTimezones = () => {
       <div className='basis-3/4 p-y-4'>
         <h1 className='text-2xl underline mb-4'>National Weather Service Active Stations</h1>
         { filteredArr === undefined || filteredArr.length === 0 ? 
-        <StationGrid stations={stations} loading={loading} searchTerm={searchTerm} /> : 
-        <StationGrid stations={filteredArr} loading={loading} searchTerm={searchTerm} />}
+        <StationGrid stations={stations} loading={loading} searchTerm={searchTerm} toFirstPage={toFirstPage} currentPage={currentPage} setCurrentPage={setCurrentPage} /> : 
+        <StationGrid stations={filteredArr} loading={loading} searchTerm={searchTerm} toFirstPage={toFirstPage} currentPage={currentPage}  setCurrentPage={setCurrentPage} />}
       </div>
     </div>
   );
