@@ -1,16 +1,14 @@
 import './App.css';
 import './index.css'
 import { useEffect, useState, useRef } from 'react';
-import RadarStation from './RadarStation';
 import StationGrid from './StationGrid';
-import Pagination from './Pagination';
 import TimezoneInput from './TimezoneInput';
 import Fuse from 'fuse.js'
 
 function App() {
 
 const [stations, setStations] = useState([]);
-const [stationsToRender, setStationsToRender] = useState([]);
+const [apiStations, setApiStations] = useState([]);
 const [loading, setLoading] = useState(false);
 const [currentPage, setCurrentPage] = useState(1);
 const [postsPerPage, setPostsPerPage] = useState(9);
@@ -20,30 +18,9 @@ const [timezone, setTimezone] = useState('');
 const [searchTerm, setSearchTerm] = useState('');
 const [filteredArr, setFilteredArr] = useState([]);
 
-let hasSearch = false;
-
 const inputRef = useRef(null);
 
-// useEffect(() => {
-//   const searchResults = stations.filter(station => {
-//          return station.properties.name.toLowerCase().includes(searchTerm);
-//        });
-//        console.log(searchTerm)
-//   console.log(searchResults);
-// }, [searchTerm])
-
-// const searchItems = (searchValue) => {
-//   setSearchTerm(searchValue);
-//   console.log(searchTerm)
-// }
-// function handleSearch (e) {
-//   const value = inputRef.current.value;
-//   console.log(value);
-//   const searchResults = stations.filter(station => {
-//     return station.properties.name.toLowerCase().includes(value);
-//   });
-//   setStations(searchResults)
-// }
+var tzlookup = require("tz-lookup");
 
 //Get current station segment
 const indexOfLastStation = currentPage * postsPerPage;
@@ -103,6 +80,14 @@ useEffect(() => {
         setStations(apiData);
         let finalArray = sortArrayByDistance(apiData);
         setStations(finalArray);
+        let xArray = finalArray.map(item => {
+          let lat = item.geometry.coordinates[1];
+          let long = item.geometry.coordinates[0];
+          let timezone = tzlookup(lat, long)
+          return {...item, timezone: timezone}
+        })
+        setStations(xArray)
+        setApiStations(xArray)
         setLoading(false);
       } catch (error) {
         console.log(error);
@@ -110,8 +95,6 @@ useEffect(() => {
     }
   fetchApiData();
 }, []);
-
-const currentStations = stations.slice(indexOfFirstStation, indexOfLastStation);
 
 const onChangeFunction = (e) => {
 
@@ -131,31 +114,36 @@ const onChangeFunction = (e) => {
   const resultTwo = result.map(item => {
     return item.item
   })
-  console.log(resultTwo)
+  console.log(stations.map(item => {
+    return item.timezone
+  }))
 
-  // let filtered = stations.filter(station => station.properties.name.toLowerCase().includes(term));
   setFilteredArr(resultTwo);
 }
 
+const getTimezoneSelection = (str) => {
+  setStations(apiStations)
+    setTimezone(str)
+}
 
-// console.log(stations);
+useEffect ( () => {
+  console.log(timezone);
+  let timezoneStations = stations.filter( item => {
+    return item.timezone === timezone
+  })
+  console.log(timezoneStations)
+  setStations(timezoneStations)
+  setFilteredArr(timezoneStations)
+}, [timezone])
 
+const resetTimezones = () => {
+  setStations(apiStations)
+}
 
-// let x = sortArrayByDistance(stations);
-// console.log(x)
-
-
-// let testArray = stations.map(station => {
-//   let distance =  getDistanceFromLatLonInKm(userLatitude, userLongitude, station.geometry.coordinates[1], station.geometry.coordinates[0]);
-//   return {...station, distance: distance};
-// });
-// let sorted = testArray.sort((a, b) => parseFloat(a.distance) - parseFloat(b.distance));
-// console.log(sorted)
-///////////////////////////////////////////////////////////////////////
   return (
     <div className="App flex w-full h-full">
       <div className='basis-1/4 h-screen border-r-black border-r-2'>
-          <TimezoneInput />
+          <TimezoneInput getTimezoneSelection={getTimezoneSelection} resetTimezones={resetTimezones} />
           <input type="text" ref={inputRef} onChange={onChangeFunction} className='border-2' placeholder='Search for a city...'></input>
       </div>
       <div className='basis-3/4 p-y-4'>
@@ -163,8 +151,6 @@ const onChangeFunction = (e) => {
         { filteredArr === undefined || filteredArr.length === 0 ? 
         <StationGrid stations={stations} loading={loading} searchTerm={searchTerm} /> : 
         <StationGrid stations={filteredArr} loading={loading} searchTerm={searchTerm} />}
-        {/* <StationGrid stations={filteredArr} loading={loading} searchTerm={searchTerm} /> */}
-        {/* <Pagination currentPage={currentPage} setCurrentPage={setCurrentPage} /> */}
       </div>
     </div>
   );
