@@ -4,12 +4,15 @@ import { useEffect, useState, useRef } from 'react';
 import StationGrid from './StationGrid';
 import TimezoneInput from './TimezoneInput';
 import Fuse from 'fuse.js'
+import { geolocated } from "react-geolocated";
 
 function App() {
 
 const [stations, setStations] = useState([]);
 const [apiStations, setApiStations] = useState([]);
 const [loading, setLoading] = useState(false);
+const [userLat, setUserLat] = useState();
+const [userLong, setUserLong] = useState();
 const [currentPage, setCurrentPage] = useState(1);
 const [userLatitude, setUserLatitude] = useState(null);
 const [userLongitude, setUserLongitude] = useState(null);
@@ -17,6 +20,23 @@ const [timezone, setTimezone] = useState('');
 const [searchTerm, setSearchTerm] = useState('');
 const [filteredArr, setFilteredArr] = useState([]);
 const inputRef = useRef(null);
+
+var geolocation = require('geolocation')
+ 
+useEffect(() => {
+  geolocation.getCurrentPosition(function (err, position) {
+    if (err) throw err
+    setUserLat(position.coords.latitude)
+    let lat = 
+    localStorage.setItem('my-key-lat', position.coords.latitude);
+    localStorage.setItem('my-key-long', position.coords.longitude)
+    setUserLong(position.coords.longitude)
+    console.log('geolocation working')
+  }, )
+  
+  console.log(userLat, userLong)
+})
+
 // Timezone Lookup Library
 var tzlookup = require("tz-lookup");
 
@@ -25,15 +45,16 @@ const successCallback = (position) => {
   let userPosition = position;
   setUserLatitude(userPosition.coords.latitude);
   setUserLongitude(userPosition.coords.longitude);
+  // console.log(userLatitude, userLongitude)
 };
 
 const errorCallback = (error) => {
   console.log(error);
 };
 
-useEffect(() => {
-  navigator.geolocation.getCurrentPosition(successCallback, errorCallback);
-}, [])
+// useEffect(() => {
+//   navigator.geolocation.getCurrentPosition(successCallback, errorCallback);
+// },)
 
 
 //Get distance from user to other stations
@@ -56,14 +77,29 @@ const deg2rad = (deg) => {
 }
 
 //Sort array of stations by distance from user
-const sortArrayByDistance = (arr) => {
+const sortArrayByDistance =  (arr) => {
+  let localLat = localStorage.getItem('my-key-lat')
+  let localLong = localStorage.getItem('my-key-long')
+  console.log(localLat, localLong)
+
+  if ( localLat && localLong) {
+    
   let arrayWithDistance = arr.map(station => {
-    let distance =  getDistanceFromLatLonInKm(userLatitude, userLongitude, station.geometry.coordinates[1], station.geometry.coordinates[0]);
+    let distance =  getDistanceFromLatLonInKm(localLat, localLong, station.geometry.coordinates[1], station.geometry.coordinates[0]);
+    
     return {...station, distance: distance};
   });
-  let sorted = arrayWithDistance.sort((a, b) => parseFloat(a.distance) - parseFloat(b.distance));
-  localStorage.setItem('sortedArray', JSON.stringify(sorted));
+  let sorted = arrayWithDistance.sort((a, b) => a.distance - b.distance);
   return sorted;
+} else {
+  let arrayWithDistance = arr.map(station => {
+    let distance =  getDistanceFromLatLonInKm(userLat, userLong, station.geometry.coordinates[1], station.geometry.coordinates[0]);
+    
+    return {...station, distance: distance};
+  });
+  let sorted = arrayWithDistance.sort((a, b) => a.distance - b.distance);
+  return sorted;
+}
 }
 
 //Get input and search through array using fuse
@@ -108,32 +144,36 @@ const resetTimezones = () => {
 //Fetch data, add distance, add timezone, and sort
 useEffect(() => {
   const fetchApiData = async () => {
+  
       const url = 'https://api.weather.gov/radar/stations';
-      
+      await userLatitude;
       try {
         setLoading(true);
         const res = await fetch(url);
         const data = await res.json();
+
         let apiData = data.features;
+        console.log(apiData)
         //sort by distance away
-        let distanceArray = sortArrayByDistance(apiData);
-        //add timezone to objects
-        let timezoneArray = distanceArray.map(item => {
+        let timezoneArray = apiData.map(item => {
           let lat = item.geometry.coordinates[1];
           let long = item.geometry.coordinates[0];
           let timezone = tzlookup(lat, long)
           return {...item, timezone: timezone}
         })
-        setStations(sortArrayByDistance(timezoneArray))
+        console.log(timezoneArray)
+        let distanceArray = await sortArrayByDistance(timezoneArray);
+        console.log(distanceArray)
+        setStations(distanceArray)
         setApiStations(sortArrayByDistance(timezoneArray))
         setLoading(false);
       } catch (error) {
         console.log(error);
       }
     }
-  fetchApiData();
-}, []);
 
+  fetchApiData();
+},[]);
 
   return (
     <div className="App flex w-full h-full">
