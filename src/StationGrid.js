@@ -17,8 +17,8 @@ function StationGrid({stations, loading, searchTerm}) {
 
     return (
         <div className='h-5/6'>
-            <div className='mt-8 grid grid-cols-3 grid-rows-3'>
-                {currentStations.filter(station => station.properties.name.toLowerCase().includes(searchTerm)).map( item => {
+            <div className='mt-4 grid grid-cols-3 grid-rows-3'>
+                {currentStations.map( item => {
                     return <RadarStation station={item} key={item.id} />
             })}
             </div>

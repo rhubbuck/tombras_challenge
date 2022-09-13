@@ -10,7 +10,7 @@ function RadarStation({station}) {
       };
 
   return (
-    <div className='border-2 py-10 flex flex-col justify-around p-2'>
+    <div className='border-2 py-4 flex flex-col justify-around p-2'>
         <h2 className='text-lg'>{station.properties.name} ({station.properties.id}) </h2>
 
         <p>Elevation: {Math.round(station.properties.elevation.value)} ft.</p>

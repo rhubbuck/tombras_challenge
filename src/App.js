@@ -5,6 +5,7 @@ import RadarStation from './RadarStation';
 import StationGrid from './StationGrid';
 import Pagination from './Pagination';
 import TimezoneInput from './TimezoneInput';
+import Fuse from 'fuse.js'
 
 function App() {
 
@@ -119,10 +120,21 @@ const onChangeFunction = (e) => {
   console.log(inputRef.current.value)
   let term = inputRef.current.value;
 
+  const options = {
+    includeScore: true,
+    keys: ['properties.name']
+  }
+  
+  const fuse = new Fuse(stations, options)
+  
+  const result = fuse.search(term)
+  const resultTwo = result.map(item => {
+    return item.item
+  })
+  console.log(resultTwo)
 
-  let filtered = stations.filter(station => station.properties.name.toLowerCase().includes(term));
-  console.log(filtered)
-  setFilteredArr(filtered);
+  // let filtered = stations.filter(station => station.properties.name.toLowerCase().includes(term));
+  setFilteredArr(resultTwo);
 }
 
 
@@ -148,7 +160,7 @@ const onChangeFunction = (e) => {
       </div>
       <div className='basis-3/4 p-y-4'>
         <h1 className='text-2xl underline mb-4'>National Weather Service Active Stations</h1>
-        { filteredArr === undefined || filteredArr.length == 0 ? 
+        { filteredArr === undefined || filteredArr.length === 0 ? 
         <StationGrid stations={stations} loading={loading} searchTerm={searchTerm} /> : 
         <StationGrid stations={filteredArr} loading={loading} searchTerm={searchTerm} />}
         {/* <StationGrid stations={filteredArr} loading={loading} searchTerm={searchTerm} /> */}
