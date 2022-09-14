@@ -16,6 +16,7 @@ const [currentPage, setCurrentPage] = useState(1);
 const [timezone, setTimezone] = useState('');
 const [searchTerm, setSearchTerm] = useState('');
 const [filteredArr, setFilteredArr] = useState([]);
+const [filter, setFilter] = useState(false);
 
 const inputRef = useRef(null);
 
@@ -78,10 +79,12 @@ const sortArrayByDistance =  (arr) => {
 //Get input and search through array using fuse
 const onChangeFunction = (e) => {
   setSearchTerm(e.target.value);
+  setFilter(true)
   let term = inputRef.current.value;
   const options = {
     includeScore: true,
-    keys: ['properties.name']
+    keys: ['properties.name'],
+    threshold: 0.4
   }
   const fuse = new Fuse(stations, options);
   const result = fuse.search(term);
@@ -168,7 +171,7 @@ useEffect(() => {
       </div>
       <div className='basis-3/4 p-y-4'>
         <h1 className='underline mt-4 mb-6 font-light leading-tight text-5xl text-blue-700'>National Weather Service Active Stations</h1>
-        { filteredArr === undefined || filteredArr.length === 0 ? 
+        { filter !== true || searchTerm === '' ? 
         <StationGrid stations={stations} loading={loading} currentPage={currentPage} setCurrentPage={setCurrentPage} /> : 
         <StationGrid stations={filteredArr} loading={loading} currentPage={currentPage}  setCurrentPage={setCurrentPage} />}
       </div>
