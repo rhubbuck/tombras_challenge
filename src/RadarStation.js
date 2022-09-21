@@ -11,19 +11,20 @@ function RadarStation({station}) {
 
   return (
     <div className=' 
-      py-4 
+      lg:py-4 
       flex 
       flex-col 
       justify-around 
-      p-2 rounded 
+      md:p-2 
+      rounded 
       overflow-hidden 
       shadow-lg 
       hover:border-blue-300 
       border-transparent 
       border-2'>
-        <h2 className='text-lg mt-2 mb-6'>{station.properties.name} ({station.properties.id}) </h2>
-        <p className='my-2'>Elevation: {Math.round(station.properties.elevation.value)} ft.</p>
-        <p onClick={showMapClick} className='cursor-pointer hover:underline my-2'>{latitude}{'\u00b0'} N , {longitude * -1}{'\u00b0'} W</p>
+        <h2 className='xl:text-lg md:text-base text-sm xl:mt-2 md:mb-2 xl:mb-6'>{station.properties.name} ({station.properties.id}) </h2>
+        <p className='xl:my-2 lg:my-1 md:text-sm lg:text-base text-xs my-1'>Elevation: {Math.round(station.properties.elevation.value)} ft.</p>
+        <p onClick={showMapClick} className='cursor-pointer hover:underline xl:my-2 md:text-sm lg:text-base text-xs'>{latitude}{'\u00b0'} N , {longitude * -1}{'\u00b0'} W</p>
     </div>
   )
 }

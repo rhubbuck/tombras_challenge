@@ -146,11 +146,17 @@ useEffect(() => {
   return (
     <div className="App flex w-full h-full">
       <div className='basis-1/4 h-screen border-r-black border-r-2'>
-        <h2 className='mt-12 mb-2'>Filter results by city or timezone</h2>
+        <h2 className='mt-12 mb-2 md:text-base text-sm'>Filter results by city or timezone</h2>
           <input type="text" ref={inputRef} onChange={onChangeFunction} className=' 
           mt-2
           px-3
-          py-1.5 w-60 text-base
+          py-1.5 
+          lg:w-60 
+          md:w-44
+          w-28
+          lg:text-base 
+          text-xs
+          md:text-sm
           font-normal
           text-gray-700
           bg-white 
@@ -170,7 +176,7 @@ useEffect(() => {
           <TimezoneInput getTimezoneSelection={getTimezoneSelection} resetTimezones={resetTimezones} />
       </div>
       <div className='basis-3/4 p-y-4'>
-        <h1 className='underline mt-4 mb-6 font-light leading-tight text-5xl text-blue-700'>National Weather Service Active Stations</h1>
+        <h1 className='underline lg:mt-4 lg:mb-6 my-2 font-light leading-tight md:text-xl lg:text-2xl 2xl:text-5xl text-blue-700'>National Weather Service Active Stations</h1>
         { filter !== true || searchTerm === '' ? 
         <StationGrid stations={stations} loading={loading} currentPage={currentPage} setCurrentPage={setCurrentPage} /> : 
         <StationGrid stations={filteredArr} loading={loading} currentPage={currentPage}  setCurrentPage={setCurrentPage} />}

@@ -13,7 +13,13 @@ function TimezoneInput( { getTimezoneSelection, resetTimezones }) {
     <div className='mt-6'>
         <select onChange={handleGetTimezone} className='
         cursor-pointer px-3
-        py-1.5 w-60 text-base
+        py-1.5 
+        lg:w-60 
+        md:w-44
+        w-28 
+        lg:text-base 
+        text-xs
+        md:text-sm
         font-normal
         text-gray-700
         bg-white bg-clip-padding

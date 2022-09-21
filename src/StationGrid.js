@@ -15,7 +15,7 @@ function StationGrid({stations, loading, currentPage, setCurrentPage }) {
     const currentStations = stations.slice(indexOfFirstStation, indexOfLastStation);
 
     return (
-        <div className='h-5/6'>
+        <div className='lg:h-5/6 h-3/5'>
             <div className='mt-4 grid grid-cols-3 grid-rows-3'>
                 {currentStations.map( item => {
                     return <RadarStation station={item} key={item.id} />
